@@ -1,4 +1,6 @@
 
+#define DEBUG
+
 // <MOTOR CONFIG>
 #define MOTOR_A_DRIVER_IN1_PIN 7  // motor A in1 pin
 #define MOTOR_A_DRIVER_IN2_PIN 8  // motor A in2 pin
@@ -45,3 +47,5 @@
 #define CONTROL_LED_B_PIN 9
 #define CONTROL_CALIBRATION_DELAY 3000
 // </CONTROL>
+
+// logs and over macros

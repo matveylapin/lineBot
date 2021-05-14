@@ -20,10 +20,11 @@ void taskControl(void *pvParameters) {
   GButton btn(CONTROL_BTN_PIN);
   btn.setDirection(NORM_CLOSE);
 
+  //LOG("connection test " + __FILE__);
+
   for(;;) {
     btn.tick();
     if (btn.isDouble()) {
-
       mode = CONTROL_MODE_CALIBRATION;
       digitalWrite(CONTROL_LED_R_PIN, 1);
       vTaskDelay(CONTROL_CALIBRATION_DELAY / portTICK_PERIOD_MS);
