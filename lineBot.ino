@@ -10,7 +10,10 @@
 #include <Arduino_FreeRTOS.h>
 
 void setup() {
-  xTaskCreate(taskControl, "Control", 128, NULL, 1, NULL);
+  Serial.begin(9600);
+  while (!Serial);
+
+  xTaskCreate(taskControl, "Control", 256, NULL, 2, NULL);
 
 }
 

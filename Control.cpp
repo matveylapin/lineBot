@@ -8,7 +8,7 @@
 
 void taskControl(void *pvParameters) {
   (void)pvParameters;
-
+  LOG("connection test 2");
   TaskHandle_t xLineDetectHandle = NULL;
   TaskHandle_t xMotionEstimatorHandle = NULL;
 
@@ -20,7 +20,7 @@ void taskControl(void *pvParameters) {
   GButton btn(CONTROL_BTN_PIN);
   btn.setDirection(NORM_CLOSE);
 
-  //LOG("connection test " + __FILE__);
+  LOG("connection test");
 
   for(;;) {
     btn.tick();
@@ -45,8 +45,6 @@ void taskControl(void *pvParameters) {
       xLineDetectHandle = NULL;
       xMotionEstimatorHandle = NULL;
 
-      //xTaskCreate(taskLineDetect, "LineDetect", 128, NULL, 2, &xLineDetectHandle);
-      //xTaskCreate(taskMotionEstimator, "MotionEstimator", 128, NULL, 2, &xMotionEstimatorHandle);
     } else if(btn.isSingle() && mode == CONTROL_MODE_ATTENTION) {
       mode = CONTROL_MODE_RUN;
       xTaskCreate(taskLineDetect, "LineDetect", 128, NULL, 2, &xLineDetectHandle);

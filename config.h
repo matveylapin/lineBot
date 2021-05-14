@@ -49,3 +49,8 @@
 // </CONTROL>
 
 // logs and over macros
+#ifdef DEBUG
+#define LOG(s) Serial.println(s)
+#elif
+#define LOG(s)
+#endif
