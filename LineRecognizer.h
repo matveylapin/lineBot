@@ -5,6 +5,13 @@
 
 #include "config.h"
 
+typedef enum {
+  LD_STATUS_BLACK_LINE = 0,
+  LD_STATUS_WHITE_LINE = 1,
+  LD_STATUS_BLACK = 2,
+  LD_STATUS_WHITE = 3
+} lineStatus_t;
+
 class LineRecognizer {
   public:
     LineRecognizer(uint8_t* sensorPins);
@@ -14,7 +21,7 @@ class LineRecognizer {
     
     void readRaw(uint16_t* sensorValues);                               // reading data from ADC
     void readCalibrated(uint16_t* sensorValues);                        // applying calibration to values
-    uint16_t readLine(uint16_t* sensorValues, uint8_t whiteLine = 0);   // returns the deviation from the line
+    uint8_t readLine(uint16_t* sensorValues, uint8_t whiteLine = 0);   // returns the deviation from the line
 
     void calibrateWhite();            // white calibration
     void calibrateBlack();            // black calibration
@@ -25,3 +32,7 @@ class LineRecognizer {
     uint16_t _calibratedBlack[LR_SENSOR_COUNT] = { 0 };
     uint16_t _calibratedWhite[LR_SENSOR_COUNT] = { LR_ADC_MAX };
 };
+
+void taskLineDetect(void *pvParameters);
+void taskLineCalibrate(void *pvParameters);
+void getLineStatus(lineStatus_t* status);

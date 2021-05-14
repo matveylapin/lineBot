@@ -11,7 +11,7 @@ LineRecognizer::~LineRecognizer() {}
 init - initialization
 */
 void LineRecognizer::init() {
-  for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) pinMode(_sensorPins[i], OUTPUT);
+  for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) pinMode(_sensorPins[i], INPUT);
 }
 
 /*
@@ -30,7 +30,7 @@ void LineRecognizer::readCalibrated(uint16_t* sensorValues) {
   for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) {
 
     uint16_t delta = _calibratedWhite[i] - _calibratedBlack[i];
-    sensorValues[i] = (uint16_t)(1000 * (float)sensorValues[i] / delta);
+    sensorValues[i] = 1000 - (uint16_t)(1000 * (float)sensorValues[i] / delta);
     if (sensorValues[i] > 1000) sensorValues[i] = 1000;
     else if (sensorValues[i] < 0) sensorValues[i] = 0;
   }
@@ -43,15 +43,15 @@ Returns:
 0 - sensors are in the extreme left / right position;
 3000 - in the extreme right / left position.
 */
-uint16_t LineRecognizer::readLine(uint16_t* sensorValues, uint8_t whiteLine) {
+uint8_t LineRecognizer::readLine(uint16_t* sensorValues, uint8_t whiteLine) {
 
   uint8_t onLine = 0;
   uint16_t sum = 0, weightedSum = 0;
-  static uint16_t lastValue = 0;
+  static uint8_t lastValue = 0;
 
-  this->readCalibrated(sensorValues);
+  //this->readCalibrated(sensorValues);
   for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) {
-    if (!whiteLine) sensorValues[i] = 1000 - sensorValues[i];
+    if (whiteLine) sensorValues[i] = 1000 - sensorValues[i];
 
     if (sensorValues[i] > LR_COLOR_BORDER) onLine = 1;      // checking if at least one sensor is on the line.
 
@@ -62,13 +62,15 @@ uint16_t LineRecognizer::readLine(uint16_t* sensorValues, uint8_t whiteLine) {
   }
 
   if (!onLine) {                                            // if no sensor is on the line, the function returns the last extreme value.
-    if (lastValue > (LR_SENSOR_COUNT - 1) * 1000 / 2)
-      return (LR_SENSOR_COUNT - 1) * 1000;
+    if (lastValue > (LR_SENSOR_COUNT - 1) * 66.66667 / 2)
+      return (uint8_t)((LR_SENSOR_COUNT - 1) * 66.66667);
     else
       return 0;
   }
 
-  return (uint16_t)((float)(weightedSum / sum) * 1000);
+  lastValue = (uint8_t)((float)(weightedSum / sum) * 66.66667);
+
+  return lastValue;
 }
 
 /*
@@ -109,7 +111,7 @@ void LineRecognizer::calibrateBlack() {
 calibrateSave - loads calibration values into nonvolatile memory.
 */
 void LineRecognizer::calibrateSave() {
-  uint8_t locator = 0;
+  uint8_t locator = LR_EEPROM_ADDR;
   for (uint8_t i = 0; i < LR_SENSOR_COUNT * 2; i++) {
     EEPROM.write(locator, _calibratedBlack[i] >> 8);
     EEPROM.write(locator + 1, _calibratedBlack[i] & 0xFF);
@@ -127,7 +129,7 @@ void LineRecognizer::calibrateSave() {
 calibrateLoad - loads calibration values from nonvolatile memory.
 */
 void LineRecognizer::calibrateLoad() {
-  uint8_t locator = 0;
+  uint8_t locator = LR_EEPROM_ADDR;
   for (uint8_t i = 0; i < LR_SENSOR_COUNT * 2; i++) {
     _calibratedBlack[i] = (EEPROM.read(locator) << 8) + (EEPROM.read(locator + 1));
     locator++;
@@ -137,4 +139,55 @@ void LineRecognizer::calibrateLoad() {
     _calibratedWhite[i] = (EEPROM.read(locator) << 8) + (EEPROM.read(locator + 1));
     locator++;
   }
+}
+
+lineStatus_t _status = LD_STATUS_BLACK_LINE;
+int8_t _error = 0;
+uint8_t linePins[] = LR_PINS;
+uint16_t sensorValues[LR_SENSOR_COUNT] = { 0 };
+
+LineRecognizer line(linePins);
+
+void taskLineDetect(void *pvParameters) {
+  (void) pvParameters;
+  
+  line.init();
+  line.calibrateLoad();
+
+  for (;;) {
+
+    //int16_t lineError = (int8_t)((line.readLine(sensorValues) - 1500) / 30);
+    line.readCalibrated(sensorValues);
+    lineStatus_t tempStatus = LD_STATUS_BLACK_LINE;
+
+    uint16_t lowValueCount = 0, midValueCount = 0, highValueCount = 0;
+    for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) {
+      if (sensorValues[i] >= LD_ON_BORDER)
+        highValueCount++;
+      else if (sensorValues[i] <= LD_OFF_BORDER)
+        lowValueCount++;
+      else midValueCount++;
+    }
+
+    if (lowValueCount == LR_SENSOR_COUNT) tempStatus = LD_STATUS_WHITE;
+    else if (highValueCount == LR_SENSOR_COUNT) tempStatus = LD_STATUS_BLACK;
+    else if ((highValueCount >= midValueCount) || (highValueCount > lowValueCount)) tempStatus = LD_STATUS_WHITE_LINE;
+    else if ((lowValueCount >= midValueCount) || (lowValueCount >= highValueCount)) tempStatus = LD_STATUS_BLACK_LINE;
+
+    _status = tempStatus;
+    _error = (int8_t)((line.readLine(sensorValues, (_status == LD_STATUS_WHITE_LINE) ? 1 : 0) - 100));
+  }
+}
+
+void taskLineCalibrate(void *pvParameters) {
+  (void) pvParameters;
+  line.init();
+}
+
+void getLineStatus(lineStatus_t* status) {
+  status = &_status;
+}
+
+void getError(int8_t* error) {
+  error = &_error;
 }

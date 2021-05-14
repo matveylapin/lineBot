@@ -4,15 +4,18 @@
  *    GyverCore https://github.com/AlexGyver/GyverCore.git
  *    FreeRTOS for arduino
 */
+
 #include <Arduino_FreeRTOS.h>
 
+#include "MotorDriver.h"
+#include "LineRecognizer.h"
+
 void setup() {
-  pinMode(13, OUTPUT);
+  xTaskCreate(taskLineDetect, "LineDetect", 128, NULL, 2, NULL);
+
+  //xTaskCreate(taskMotionEstimator, "MotionEstimator", 128, NULL, 2, NULL);
 }
 
 void loop() {
-  digitalWrite(13, 1);
-  delay(100);
-  digitalWrite(13, 0);
-  delay(500);
+
 }
