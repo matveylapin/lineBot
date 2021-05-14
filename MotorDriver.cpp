@@ -1,6 +1,7 @@
 #include "MotorDriver.h"
 
 #include "config.h"
+#include "LineRecognizer.h"
 
 MotorDriver::MotorDriver(uint8_t in1Pin, uint8_t in2Pin, uint8_t pwmPin, int8_t direction) {
   _in1Pin = in1Pin;
