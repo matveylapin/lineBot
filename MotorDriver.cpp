@@ -1,4 +1,4 @@
-#include "motorDriver.h"
+#include "MotorDriver.h"
 
 #include "config.h"
 
@@ -17,8 +17,18 @@ void MotorDriver::init() {
   pinMode(_pwmPin, OUTPUT);
 }
 
+/*
+reverse - changes the direction of rotation of the motor
+*/
+void MotorDriver::reverse() {
+  _direction *= -1;
+}
+
+/*
+setSpeed - the method sets the speed. at speed = 0 braking is performed. negative speed corresponds to reverse rotation
+*/
 void MotorDriver::setSpeed(int8_t speed) {
-  speed = (int8_t)(_direction * speed * MOTOR_SPEED_SCALE);
+  speed = (int8_t)(_direction * speed);
 
   if (speed == 0) {
     analogWrite(_pwmPin, 0);
