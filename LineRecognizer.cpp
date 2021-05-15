@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
+#include "FastGPIO.h"
 #include <Arduino_FreeRTOS.h>
 
 LineRecognizer::LineRecognizer(uint8_t* sensorPins) {
@@ -16,13 +17,14 @@ init - initialization
 */
 void LineRecognizer::init() {
   for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) pinMode(_sensorPins[i], INPUT);
+  ADCSRA = (ADCSRA & 0xF8) | 0x02;    // set ADC prescale to 4
 }
 
 /*
 readRaw - reading raw data from adc.
 */
 void LineRecognizer::readRaw(uint16_t* sensorValues) {
-  for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) sensorValues[i] = analogRead(_sensorPins[i]);
+  for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) sensorValues[i] = fastAnalogRead(_sensorPins[i]);
 }
 
 /*
@@ -73,7 +75,7 @@ uint8_t LineRecognizer::readLine(uint16_t* sensorValues, uint8_t whiteLine) {
       return 0;
   }
 
-  lastValue = (uint8_t)((float)(weightedSum / sum) * 66.66667);
+  lastValue = (uint8_t)(((float)weightedSum / (float)sum) * 66.66667);
 
   return lastValue;
 }
