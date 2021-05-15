@@ -1,6 +1,7 @@
 #include "MotorDriver.h"
 
 #include "config.h"
+#include "FastGPIO.h"
 #include "LineRecognizer.h"
 
 MotorDriver::MotorDriver(uint8_t in1Pin, uint8_t in2Pin, uint8_t pwmPin, int8_t direction) {
@@ -32,13 +33,13 @@ void MotorDriver::setSpeed(int8_t speed) {
   speed = (int8_t)(_direction * speed);
 
   if (speed == 0) {
-    analogWrite(_pwmPin, 0);
-    digitalWrite(_in1Pin, 1);
-    digitalWrite(_in2Pin, 1);
+    fastAnalogWrite(_pwmPin, 0);
+    fastDigitalWrite(_in1Pin, 1);
+    fastDigitalWrite(_in2Pin, 1);
   } else {
     bool dir = (speed > 0) ? 1 : 0;
-    digitalWrite(_in1Pin, dir);
-    digitalWrite(_in2Pin, !dir);
-    analogWrite(_pwmPin, constrain((int)((dir ? speed : -speed) * 2.55), 0, 255));
+    fastDigitalWrite(_in1Pin, dir);
+    fastDigitalWrite(_in2Pin, !dir);
+    fastAnalogWrite(_pwmPin, constrain((int)((dir ? speed : -speed) * 2.55), 0, 255));
   }
 }

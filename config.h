@@ -1,5 +1,7 @@
 
-#define DEBUG
+#define DEBUG_INFO
+#define DEBUG_ERR
+#define DEBUG_WRN
 
 // <MOTOR CONFIG>
 #define MOTOR_A_DRIVER_IN1_PIN 7  // motor A in1 pin
@@ -49,3 +51,29 @@
 // </CONTROL>
 
 // logs and over macros
+#ifdef DEBUG_INFO
+  #define MSG_INFO(s) Serial.print(F("[ INFO ][")); \
+                      Serial.print(F(__TASK__)); \
+                      Serial.print(F("]: ")); \
+                      Serial.println(F(s))
+#else
+  #define MSG_INFO(s)
+#endif
+
+#ifdef DEBUG_ERR
+  #define MSG_ERR(s)  Serial.print(F("[ ERROR ][")); \
+                      Serial.print(F(__TASK__)); \
+                      Serial.print(F("]: ")); \
+                      Serial.println(F(s))
+#else
+  #define MSG_ERR(s)
+#endif
+
+#ifdef DEBUG_WRN
+  #define MSG_WRN(s)  Serial.print(F("[ WARNING ][")); \
+                      Serial.print(F(__TASK__)); \
+                      Serial.print(F("]: ")); \
+                      Serial.println(F(s))
+#else
+  #define MSG_WRN(s)
+#endif
