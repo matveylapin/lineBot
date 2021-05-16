@@ -1,7 +1,7 @@
 
 #define DEBUG_INFO
-#define DEBUG_ERR
-#define DEBUG_WRN
+//#define DEBUG_ERR
+//#define DEBUG_WRN
 
 // <MOTOR CONFIG>
 #define MOTOR_A_DRIVER_IN1_PIN 7  // motor A in1 pin
@@ -37,7 +37,7 @@
 // </PID>
 
 // <MOTION ESTIMATOR>
-#define ME_TASK_FREQ 10
+#define ME_TASK_TIME 20
 #define ME_AVG_SPEED 50
 #define ME_STOP_LINE_TRAVEL_TIME 1000
 // </MOTION ESTIMATOR>
@@ -47,7 +47,7 @@
 #define CONTROL_LED_R_PIN 11
 #define CONTROL_LED_G_PIN 10
 #define CONTROL_LED_B_PIN 9
-#define CONTROL_CALIBRATION_DELAY 3000
+#define CONTROL_CALIBRATION_DELAY 500
 // </CONTROL>
 
 // logs and over macros
@@ -55,7 +55,8 @@
   #define MSG_INFO(s) Serial.print(F("[ INFO ][")); \
                       Serial.print(F(__TASK__)); \
                       Serial.print(F("]: ")); \
-                      Serial.println(F(s))
+                      Serial.println(s); \
+                      while ((UCSR0A & _BV (TXC0)) == 0)
 #else
   #define MSG_INFO(s)
 #endif
@@ -64,7 +65,8 @@
   #define MSG_ERR(s)  Serial.print(F("[ ERROR ][")); \
                       Serial.print(F(__TASK__)); \
                       Serial.print(F("]: ")); \
-                      Serial.println(F(s))
+                      Serial.println(s); \
+                      while ((UCSR0A & _BV (TXC0)) == 0)
 #else
   #define MSG_ERR(s)
 #endif
@@ -73,7 +75,8 @@
   #define MSG_WRN(s)  Serial.print(F("[ WARNING ][")); \
                       Serial.print(F(__TASK__)); \
                       Serial.print(F("]: ")); \
-                      Serial.println(F(s))
+                      Serial.println(s); \
+                      while ((UCSR0A & _BV (TXC0)) == 0)
 #else
   #define MSG_WRN(s)
 #endif

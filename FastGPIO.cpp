@@ -1,12 +1,21 @@
 #include "FastGPIO.h"
 
 #include <Arduino.h>
+#include "config.h"
 
-uint16_t fastAnalogRead(uint8_t pin) {
+#ifndef cbi
+#define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
+#endif
+#ifndef sbi
+#define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
+#endif
+
+int fastAnalogRead(uint8_t pin) {
   pin = ((pin < 8) ? pin : pin - 14);
-  ADMUX = (DEFAULT << 6) | pin;
-  bitSet(ADCSRA, ADSC);
-  while (ADCSRA & (1 << ADSC));
+  ADMUX = (DEFAULT << 6) | (pin & 0x07);
+  sbi(ADCSRA, ADSC);
+  //bitSet(ADCSRA, ADSC);
+  while (bit_is_set(ADCSRA, ADSC));
   return ADC;
 }
 

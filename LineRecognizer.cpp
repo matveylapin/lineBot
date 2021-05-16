@@ -6,8 +6,10 @@
 #include "FastGPIO.h"
 #include <Arduino_FreeRTOS.h>
 
+#define __TASK__ "LineDetect"
+
 LineRecognizer::LineRecognizer(uint8_t* sensorPins) {
-  memcpy(_sensorPins, sensorPins, LR_SENSOR_COUNT);
+  for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) _sensorPins[i] = sensorPins[i];
 }
 
 LineRecognizer::~LineRecognizer() {}
@@ -17,21 +19,42 @@ init - initialization
 */
 void LineRecognizer::init() {
   for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) pinMode(_sensorPins[i], INPUT);
-  ADCSRA = (ADCSRA & 0xF8) | 0x02;    // set ADC prescale to 4
+  ADCSRA |= (1 << ADPS1); 
+  ADCSRA &= ~ ((1 << ADPS2) | (1 << ADPS0));
+  /*
+  ADCSRA = 0;
+  ADCSRB = 0;
+  ADMUX |= (1 << REFS0);
+
+  analog_ref = ADMUX;
+
+  ADMUX |= (0 & 0x07);
+
+  ADCSRA |= (1 << ADPS2) | (1 << ADPS0);
+  ADCSRA &= ~ (1 << ADPS1);
+
+  ADCSRA |= (1 << ADATE);
+  ADCSRA |= (1 << ADIE);
+  ADCSRA |= (1 << ADEN);
+  ADCSRA |= (1 << ADSC);
+  */
 }
 
 /*
 readRaw - reading raw data from adc.
 */
 void LineRecognizer::readRaw(uint16_t* sensorValues) {
-  for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) sensorValues[i] = fastAnalogRead(_sensorPins[i]);
+  Serial.println("gay");
+  //sensorValues[0] = fastAnalogRead(_sensorPins[0]);
+  sensorValues[1] = fastAnalogRead(_sensorPins[1]);
+  sensorValues[2] = fastAnalogRead(_sensorPins[2]);
+  sensorValues[3] = fastAnalogRead(_sensorPins[3]);
 }
 
 /*
 readCalibrated - reduction of values ​​from sensors [0, 1024) to [0, 1000] taking into account the calibration values.
 */
 void LineRecognizer::readCalibrated(uint16_t* sensorValues) {
-
   this->readRaw(sensorValues);
   for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) {
 
@@ -86,14 +109,14 @@ calibrateWhite - calculates calibration values ​​for white.
 void LineRecognizer::calibrateWhite() {
   uint16_t* sensorValues;
   memset(_calibratedWhite, 0, LR_SENSOR_COUNT * sizeof(uint16_t));
-
   for (uint8_t i = 0; i < 10; i++) {
-
     this->readRaw(sensorValues);
     for (uint8_t j = 0; j < LR_SENSOR_COUNT; j++) {
-      if (i == 0 || _calibratedWhite[j] < sensorValues[j])
+      if (_calibratedWhite[j] < sensorValues[j])
         _calibratedWhite[j] = sensorValues[j];
     }
+    delay(50);
+    //vTaskDelay(10 / portTICK_PERIOD_MS);
   }
 }
 
@@ -102,15 +125,15 @@ calibrateBlack - calculates calibration values ​​for black.
 */
 void LineRecognizer::calibrateBlack() {
   uint16_t* sensorValues;
-  memset(_calibratedBlack, 0, LR_SENSOR_COUNT * sizeof(uint16_t));
-
+  memset(_calibratedBlack, 1024, LR_SENSOR_COUNT * sizeof(uint16_t));
   for (uint8_t i = 0; i < 10; i++) {
-
     this->readRaw(sensorValues);
     for (uint8_t j = 0; j < LR_SENSOR_COUNT; j++) {
-      if (i == 0 || _calibratedBlack[j] > sensorValues[j])
+      if (_calibratedBlack[j] > sensorValues[j])
         _calibratedBlack[j] = sensorValues[j];
     }
+    delay(50);
+    //vTaskDelay(10 / portTICK_PERIOD_MS);
   }
 }
 
@@ -118,7 +141,7 @@ void LineRecognizer::calibrateBlack() {
 calibrateSave - loads calibration values into nonvolatile memory.
 */
 void LineRecognizer::calibrateSave() {
-  volatile uint8_t locator = LR_EEPROM_ADDR;
+  uint8_t locator = LR_EEPROM_ADDR;
   for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) {
     EEPROM.write(locator, _calibratedBlack[i] >> 8);
     EEPROM.write(locator + 1, _calibratedBlack[i] & 0xFF);
@@ -136,7 +159,7 @@ void LineRecognizer::calibrateSave() {
 calibrateLoad - loads calibration values from nonvolatile memory.
 */
 void LineRecognizer::calibrateLoad() {
-  volatile uint8_t locator = LR_EEPROM_ADDR;
+  uint8_t locator = LR_EEPROM_ADDR;
   for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) {
     _calibratedBlack[i] = (uint16_t)(EEPROM.read(locator) << 8) + (EEPROM.read(locator + 1));
     locator += 2;
@@ -190,7 +213,6 @@ void taskLineDetect(void* pvParameters) {
 }
 
 void lineDetectRunCalibrate(uint8_t targetColor, uint8_t save) {
-  line.init();
   if (targetColor == 0)
     line.calibrateWhite();
   else if (targetColor == 1)
@@ -200,6 +222,7 @@ void lineDetectRunCalibrate(uint8_t targetColor, uint8_t save) {
 }
 
 void lineDetectInit() {
+  line.init();
   line.calibrateLoad();
 }
 
