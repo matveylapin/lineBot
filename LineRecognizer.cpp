@@ -166,10 +166,10 @@ void taskLineDetect(void* pvParameters) {
 
   for (;;) {
 
-    //int16_t lineError = (int8_t)((line.readLine(sensorValues) - 1500) / 30);
     line.readCalibrated(sensorValues);
     lineStatus_t tempStatus = LD_STATUS_BLACK_LINE;
 
+    // count the number of strictly white, strictly black and average values ​​from the sensors
     uint16_t lowValueCount = 0, midValueCount = 0, highValueCount = 0;
     for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) {
       if (sensorValues[i] >= LD_ON_BORDER)
@@ -179,7 +179,7 @@ void taskLineDetect(void* pvParameters) {
       else
         midValueCount++;
     }
-
+    // here we will recognize the status of the line
     if (lowValueCount == LR_SENSOR_COUNT) tempStatus = LD_STATUS_WHITE;
     else if (highValueCount == LR_SENSOR_COUNT)
       tempStatus = LD_STATUS_BLACK;

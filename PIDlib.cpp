@@ -27,6 +27,7 @@ void PID::setFactorD(float d) {
   _d = d;
 }
 
+// writing to non-volatile memory, because of the pk in physics did not have time to connect
 void PID::saveFactors() {
   for (uint8_t i = 0; i < sizeof(float); i++) {
     EEPROM.write(PID_EEPROM_ADDR + i, (uint32_t)_p >> 8 * (3 - i));

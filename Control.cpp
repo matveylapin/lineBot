@@ -32,7 +32,8 @@ void taskControl(void *pvParameters) {
 
     bool isSingle = btn.isSingle();
     bool isDouble = btn.isDouble();
-    if (isDouble && mode == CONTROL_MODE_DEFAULT) {
+    if (isDouble && mode == CONTROL_MODE_DEFAULT) {   // double pressing the start button starts the calibration of the sensors.
+                                                      // There is also a calibration indication. first white is calibrated, then delay and black calibration
       MSG_INFO("Line calibrate start");
 
       mode = CONTROL_MODE_CALIBRATION;
@@ -47,7 +48,7 @@ void taskControl(void *pvParameters) {
       mode = CONTROL_MODE_DEFAULT;
 
       MSG_INFO("Line calibrate finish");
-    } else if (btn.isHolded() && mode == CONTROL_MODE_DEFAULT) {
+    } else if (btn.isHolded() && mode == CONTROL_MODE_DEFAULT) {  // holding the button starts pre-start mode
       MSG_INFO("Activate attention mode");
 
       mode = CONTROL_MODE_ATTENTION;
@@ -57,19 +58,20 @@ void taskControl(void *pvParameters) {
 
       xLineDetectHandle = NULL;
       xMotionEstimatorHandle = NULL;
-    } else if(isSingle && mode == CONTROL_MODE_ATTENTION) {
+    } else if(isSingle && mode == CONTROL_MODE_ATTENTION) { // pressing in pre-start mode starts driving
       MSG_INFO("RUN");
 
       mode = CONTROL_MODE_RUN;
       xTaskCreate(taskLineDetect, "LineDetect", 128, NULL, 2, &xLineDetectHandle);
       xTaskCreate(taskMotionEstimator, "MotionEstimator", 128, NULL, 2, &xMotionEstimatorHandle);
-    } else if (isSingle && mode == CONTROL_MODE_RUN) {
+    } else if (isSingle && mode == CONTROL_MODE_RUN) {  // pressing again stops driving
 
       MSG_INFO("Run mode disable");
 
       mode = CONTROL_MODE_DEFAULT;
       vTaskDelete(xMotionEstimatorHandle);
       vTaskDelete(xLineDetectHandle);
+      
       if (xMotionEstimatorHandle != NULL ||xLineDetectHandle != NULL) MSG_ERR("Tasks not delete");
     }
   }
