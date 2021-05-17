@@ -24,30 +24,26 @@ void taskControl(void *pvParameters) {
 
   GButton btn(CONTROL_BTN_PIN);
   btn.setDirection(NORM_OPEN);
-  //lineDetectInit();
 
   MSG_INFO("Is init");
-  MSG_INFO(F_CPU);
-  MSG_INFO(portTICK_PERIOD_MS);
 
   for(;;) {
     btn.tick();
 
     bool isSingle = btn.isSingle();
     bool isDouble = btn.isDouble();
-
     if (isDouble && mode == CONTROL_MODE_DEFAULT) {
       MSG_INFO("Line calibrate start");
 
       mode = CONTROL_MODE_CALIBRATION;
-      //fastDigitalWrite(CONTROL_LED_R_PIN, 1);
+      fastDigitalWrite(CONTROL_LED_R_PIN, 1);
       vTaskDelay(CONTROL_CALIBRATION_DELAY / portTICK_PERIOD_MS);
       lineDetectRunCalibrate(0, 0);
-      //fastDigitalWrite(CONTROL_LED_G_PIN, 1);
+      fastDigitalWrite(CONTROL_LED_G_PIN, 1);
       vTaskDelay(CONTROL_CALIBRATION_DELAY / portTICK_PERIOD_MS);
       lineDetectRunCalibrate(1, 0);
-      //fastDigitalWrite(CONTROL_LED_R_PIN, 0);
-      //fastDigitalWrite(CONTROL_LED_G_PIN, 0);
+      fastDigitalWrite(CONTROL_LED_R_PIN, 0);
+      fastDigitalWrite(CONTROL_LED_G_PIN, 0);
       mode = CONTROL_MODE_DEFAULT;
 
       MSG_INFO("Line calibrate finish");

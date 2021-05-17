@@ -55,8 +55,7 @@
   #define MSG_INFO(s) Serial.print(F("[ INFO ][")); \
                       Serial.print(F(__TASK__)); \
                       Serial.print(F("]: ")); \
-                      Serial.println(s); \
-                      while ((UCSR0A & _BV (TXC0)) == 0)
+                      Serial.println(s)
 #else
   #define MSG_INFO(s)
 #endif
@@ -65,8 +64,7 @@
   #define MSG_ERR(s)  Serial.print(F("[ ERROR ][")); \
                       Serial.print(F(__TASK__)); \
                       Serial.print(F("]: ")); \
-                      Serial.println(s); \
-                      while ((UCSR0A & _BV (TXC0)) == 0)
+                      Serial.println(s)
 #else
   #define MSG_ERR(s)
 #endif
@@ -75,8 +73,7 @@
   #define MSG_WRN(s)  Serial.print(F("[ WARNING ][")); \
                       Serial.print(F(__TASK__)); \
                       Serial.print(F("]: ")); \
-                      Serial.println(s); \
-                      while ((UCSR0A & _BV (TXC0)) == 0)
+                      Serial.println(s)
 #else
   #define MSG_WRN(s)
 #endif

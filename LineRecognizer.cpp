@@ -21,6 +21,7 @@ void LineRecognizer::init() {
   for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) pinMode(_sensorPins[i], INPUT);
   ADCSRA |= (1 << ADPS1); 
   ADCSRA &= ~ ((1 << ADPS2) | (1 << ADPS0));
+  ADCSRA &= ~(1 << ADATE);
   /*
   ADCSRA = 0;
   ADCSRB = 0;
@@ -44,8 +45,7 @@ void LineRecognizer::init() {
 readRaw - reading raw data from adc.
 */
 void LineRecognizer::readRaw(uint16_t* sensorValues) {
-  Serial.println("gay");
-  //sensorValues[0] = fastAnalogRead(_sensorPins[0]);
+  sensorValues[0] = fastAnalogRead(_sensorPins[0]);
   sensorValues[1] = fastAnalogRead(_sensorPins[1]);
   sensorValues[2] = fastAnalogRead(_sensorPins[2]);
   sensorValues[3] = fastAnalogRead(_sensorPins[3]);
@@ -107,10 +107,10 @@ uint8_t LineRecognizer::readLine(uint16_t* sensorValues, uint8_t whiteLine) {
 calibrateWhite - calculates calibration values ​​for white.
 */
 void LineRecognizer::calibrateWhite() {
-  uint16_t* sensorValues;
+  uint16_t sensorValues[LR_SENSOR_COUNT];
   memset(_calibratedWhite, 0, LR_SENSOR_COUNT * sizeof(uint16_t));
   for (uint8_t i = 0; i < 10; i++) {
-    this->readRaw(sensorValues);
+    readRaw(sensorValues);
     for (uint8_t j = 0; j < LR_SENSOR_COUNT; j++) {
       if (_calibratedWhite[j] < sensorValues[j])
         _calibratedWhite[j] = sensorValues[j];
@@ -124,10 +124,10 @@ void LineRecognizer::calibrateWhite() {
 calibrateBlack - calculates calibration values ​​for black.
 */
 void LineRecognizer::calibrateBlack() {
-  uint16_t* sensorValues;
+  uint16_t sensorValues[LR_SENSOR_COUNT];
   memset(_calibratedBlack, 1024, LR_SENSOR_COUNT * sizeof(uint16_t));
   for (uint8_t i = 0; i < 10; i++) {
-    this->readRaw(sensorValues);
+    readRaw(sensorValues);
     for (uint8_t j = 0; j < LR_SENSOR_COUNT; j++) {
       if (_calibratedBlack[j] > sensorValues[j])
         _calibratedBlack[j] = sensorValues[j];

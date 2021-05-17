@@ -18,7 +18,6 @@ void taskMotionEstimator(void *pvParameters) {
   (void)pvParameters;
 
   MSG_INFO("Start");
-  MSG_INFO(portTICK_PERIOD_MS);
 
   lineStatus_t status;
   int8_t error;
