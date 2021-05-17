@@ -5,6 +5,7 @@
 #include "FastGPIO.h"
 #include "MotorDriver.h"
 #include "LineRecognizer.h"
+#include "ObstacleDetector.h"
 #include <Arduino_FreeRTOS.h>
 
 #define __TASK__ " MotionEstimator "

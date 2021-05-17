@@ -22,23 +22,6 @@ void LineRecognizer::init() {
   ADCSRA |= (1 << ADPS1); 
   ADCSRA &= ~ ((1 << ADPS2) | (1 << ADPS0));
   ADCSRA &= ~(1 << ADATE);
-  /*
-  ADCSRA = 0;
-  ADCSRB = 0;
-  ADMUX |= (1 << REFS0);
-
-  analog_ref = ADMUX;
-
-  ADMUX |= (0 & 0x07);
-
-  ADCSRA |= (1 << ADPS2) | (1 << ADPS0);
-  ADCSRA &= ~ (1 << ADPS1);
-
-  ADCSRA |= (1 << ADATE);
-  ADCSRA |= (1 << ADIE);
-  ADCSRA |= (1 << ADEN);
-  ADCSRA |= (1 << ADSC);
-  */
 }
 
 /*

@@ -50,6 +50,13 @@
 #define CONTROL_CALIBRATION_DELAY 500
 // </CONTROL>
 
+// <OBSTRACLE DETECTOR>
+#define OD_SERVO_PIN 3
+#define OD_RADAR_TRIG_PIN 13
+#define OD_RADAR_ECHO_PIN 12
+#define OD_RADAR_ARRAY_SIZE 18
+// </OBSTRACLE DETECTOR>
+
 // logs and over macros
 #ifdef DEBUG_INFO
   #define MSG_INFO(s) Serial.print(F("[ INFO ][")); \
