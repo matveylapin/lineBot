@@ -15,7 +15,6 @@ void setup() {
   lineDetectInit();
   obstacleDetectorInit();
   xTaskCreate(taskControl, "Control", 256, NULL, 1, NULL);
-  //xTaskCreate(taskObstacleDetector, "ObstacleDetector", 256, NULL, 2, NULL);
 }
 
 void loop() { }

@@ -215,9 +215,9 @@ void taskLineDetect(void* pvParameters) {
       sensorValues[3] = digitalRead(A2);
 
       if ( (sensorValues[0] == LOW || sensorValues[1] == LOW) &&  sensorValues[3] == LOW) {
-        _error = 100;
-      } else if ( sensorValues[0] == LOW && (sensorValues[2] == LOW ||  sensorValues[3] == LOW)) {
         _error = -100;
+      } else if ( sensorValues[0] == LOW && (sensorValues[2] == LOW ||  sensorValues[3] == LOW)) {
+        _error = 100;
       } else if ( sensorValues[0] == LOW) {
         _error = 75;
       } else if ( sensorValues[3] == LOW ) {
