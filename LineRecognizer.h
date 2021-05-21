@@ -26,7 +26,7 @@ public:
   void calibrateBlack();  // black calibration
   void calibrateSave();   // saving calibration values ​​to EEPROM
   void calibrateLoad();   // reading calibration values ​​from EEPROM
-private:
+public:
   uint8_t _sensorPins[LR_SENSOR_COUNT] = { 0 };
   uint16_t _calibratedBlack[LR_SENSOR_COUNT] = { 0 };
   uint16_t _calibratedWhite[LR_SENSOR_COUNT] = { LR_ADC_MAX };

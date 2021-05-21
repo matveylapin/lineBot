@@ -40,11 +40,12 @@ void taskControl(void *pvParameters) {
       fastDigitalWrite(CONTROL_LED_R_PIN, 1);
       vTaskDelay(CONTROL_CALIBRATION_DELAY / portTICK_PERIOD_MS);
       lineDetectRunCalibrate(0, 0);
-      fastDigitalWrite(CONTROL_LED_G_PIN, 1);
-      vTaskDelay(CONTROL_CALIBRATION_DELAY / portTICK_PERIOD_MS);
-      lineDetectRunCalibrate(1, 0);
       fastDigitalWrite(CONTROL_LED_R_PIN, 0);
-      fastDigitalWrite(CONTROL_LED_G_PIN, 0);
+      fastDigitalWrite(CONTROL_LED_B_PIN, 1);
+      MSG_INFO("next");
+      vTaskDelay(CONTROL_CALIBRATION_DELAY / portTICK_PERIOD_MS);
+      lineDetectRunCalibrate(1, 1);
+      fastDigitalWrite(CONTROL_LED_B_PIN, 0);
       mode = CONTROL_MODE_DEFAULT;
 
       MSG_INFO("Line calibrate finish");
@@ -56,13 +57,18 @@ void taskControl(void *pvParameters) {
       lineDetectInit();
       motorsInit();
 
+      fastDigitalWrite(CONTROL_LED_R_PIN, 1);
+      fastDigitalWrite(CONTROL_LED_G_PIN, 1);
+
       xLineDetectHandle = NULL;
       xMotionEstimatorHandle = NULL;
     } else if(isSingle && mode == CONTROL_MODE_ATTENTION) { // pressing in pre-start mode starts driving
       MSG_INFO("RUN");
 
       mode = CONTROL_MODE_RUN;
-      xTaskCreate(taskLineDetect, "LineDetect", 128, NULL, 2, &xLineDetectHandle);
+      fastDigitalWrite(CONTROL_LED_R_PIN, 0);
+
+      xTaskCreate(taskLineDetect, "LineDetect", 256, NULL, 2, &xLineDetectHandle);
       xTaskCreate(taskMotionEstimator, "MotionEstimator", 128, NULL, 2, &xMotionEstimatorHandle);
     } else if (isSingle && mode == CONTROL_MODE_RUN) {  // pressing again stops driving
 
@@ -71,6 +77,8 @@ void taskControl(void *pvParameters) {
       mode = CONTROL_MODE_DEFAULT;
       vTaskDelete(xMotionEstimatorHandle);
       vTaskDelete(xLineDetectHandle);
+
+      fastDigitalWrite(CONTROL_LED_G_PIN, 0);
       
       if (xMotionEstimatorHandle != NULL ||xLineDetectHandle != NULL) MSG_ERR("Tasks not delete");
     }

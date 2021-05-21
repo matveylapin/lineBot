@@ -15,8 +15,8 @@
 // </MOTOR CONFIG>
 
 // <LINE RECOGNIZER>
-#define LR_PINS \
-  { 15, 16, 17, 18 }
+#define LR_PINS { 18, 17, 16, 15 }
+  //{ 15, 16, 17, 18 }
 #define LR_SENSOR_COUNT 4
 #define LR_ADC_MAX 1024
 #define LR_COLOR_BORDER 200
@@ -25,20 +25,20 @@
 
 #define LD_ON_BORDER 900
 #define LD_OFF_BORDER 100
-#define LD_TASK_FREQ 15
+#define LD_TASK_TIME 150
 // </LINE RECOGNIZER>
 
 // <PID>
 #define PID_ERROR_ARRAY_SIZE 10
 #define PID_EEPROM_ADDR 20
 #define PID_DEFAULT_P 1.0
-#define PID_DEFAULT_I 0.5
-#define PID_DEFAULT_D 0.5
+#define PID_DEFAULT_I 0.0
+#define PID_DEFAULT_D 0.0
 // </PID>
 
 // <MOTION ESTIMATOR>
-#define ME_TASK_TIME 20
-#define ME_AVG_SPEED 50
+#define ME_TASK_TIME 100
+#define ME_AVG_SPEED 20
 #define ME_STOP_LINE_TRAVEL_TIME 1000
 // </MOTION ESTIMATOR>
 
@@ -47,7 +47,7 @@
 #define CONTROL_LED_R_PIN 11
 #define CONTROL_LED_G_PIN 10
 #define CONTROL_LED_B_PIN 9
-#define CONTROL_CALIBRATION_DELAY 500
+#define CONTROL_CALIBRATION_DELAY 3000
 // </CONTROL>
 
 // <OBSTRACLE DETECTOR>
@@ -55,6 +55,8 @@
 #define OD_RADAR_TRIG_PIN 13
 #define OD_RADAR_ECHO_PIN 12
 #define OD_RADAR_ARRAY_SIZE 18
+#define OD_RADAR_TOGGLE_VALUE 15  // sm
+#define OD_TASK_TIME 500
 // </OBSTRACLE DETECTOR>
 
 // logs and over macros

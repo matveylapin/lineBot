@@ -19,9 +19,13 @@ init - initialization
 */
 void LineRecognizer::init() {
   for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) pinMode(_sensorPins[i], INPUT);
-  ADCSRA |= (1 << ADPS1); 
-  ADCSRA &= ~ ((1 << ADPS2) | (1 << ADPS0));
-  ADCSRA &= ~(1 << ADATE);
+  //ADCSRA |= (1 << ADPS1); 
+  //ADCSRA &= ~ ((1 << ADPS2) | (1 << ADPS0));
+  //ADCSRA &= ~(1 << ADATE);
+  for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) {
+    _calibratedBlack[i] = 1023;
+    _calibratedWhite[i] = 0;
+  }
 }
 
 /*
@@ -32,6 +36,7 @@ void LineRecognizer::readRaw(uint16_t* sensorValues) {
   sensorValues[1] = fastAnalogRead(_sensorPins[1]);
   sensorValues[2] = fastAnalogRead(_sensorPins[2]);
   sensorValues[3] = fastAnalogRead(_sensorPins[3]);
+
 }
 
 /*
@@ -40,13 +45,15 @@ readCalibrated - reduction of values ​​from sensors [0, 1024) to [0, 1000] t
 void LineRecognizer::readCalibrated(uint16_t* sensorValues) {
   this->readRaw(sensorValues);
   for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) {
-
+    Serial.println(sensorValues[i]);
     uint16_t delta = _calibratedWhite[i] - _calibratedBlack[i];
-    sensorValues[i] = 1000 - (uint16_t)(1000 * (float)sensorValues[i] / delta);
+    sensorValues[i] = 1000 - (uint16_t)(1000.0 * (float)sensorValues[i] / (float)delta);
+    Serial.println(sensorValues[i]);
     if (sensorValues[i] > 1000) sensorValues[i] = 1000;
     else if (sensorValues[i] < 0)
       sensorValues[i] = 0;
   }
+
 }
 
 /*
@@ -91,14 +98,15 @@ calibrateWhite - calculates calibration values ​​for white.
 */
 void LineRecognizer::calibrateWhite() {
   uint16_t sensorValues[LR_SENSOR_COUNT];
-  memset(_calibratedWhite, 0, LR_SENSOR_COUNT * sizeof(uint16_t));
+  for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++)
+    _calibratedWhite[i] = 0;
   for (uint8_t i = 0; i < 10; i++) {
     readRaw(sensorValues);
     for (uint8_t j = 0; j < LR_SENSOR_COUNT; j++) {
       if (_calibratedWhite[j] < sensorValues[j])
         _calibratedWhite[j] = sensorValues[j];
     }
-    delay(50);
+    delay(100);
     //vTaskDelay(10 / portTICK_PERIOD_MS);
   }
 }
@@ -108,14 +116,15 @@ calibrateBlack - calculates calibration values ​​for black.
 */
 void LineRecognizer::calibrateBlack() {
   uint16_t sensorValues[LR_SENSOR_COUNT];
-  memset(_calibratedBlack, 1024, LR_SENSOR_COUNT * sizeof(uint16_t));
+  for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++)
+    _calibratedBlack[i] = 1023;
   for (uint8_t i = 0; i < 10; i++) {
     readRaw(sensorValues);
     for (uint8_t j = 0; j < LR_SENSOR_COUNT; j++) {
       if (_calibratedBlack[j] > sensorValues[j])
         _calibratedBlack[j] = sensorValues[j];
     }
-    delay(50);
+    delay(100);
     //vTaskDelay(10 / portTICK_PERIOD_MS);
   }
 }
@@ -155,7 +164,7 @@ void LineRecognizer::calibrateLoad() {
 }
 
 lineStatus_t _status = LD_STATUS_BLACK_LINE;
-int8_t _error = 0;
+int8_t _error = 123;
 uint8_t linePins[] = LR_PINS;
 uint16_t sensorValues[LR_SENSOR_COUNT] = { 0 };
 
@@ -164,8 +173,10 @@ LineRecognizer line(linePins);
 void taskLineDetect(void* pvParameters) {
   (void)pvParameters;
 
-  for (;;) {
+  MSG_INFO("Start");
 
+  for (;;) {
+    /*
     line.readCalibrated(sensorValues);
     lineStatus_t tempStatus = LD_STATUS_BLACK_LINE;
 
@@ -191,7 +202,36 @@ void taskLineDetect(void* pvParameters) {
     _status = tempStatus;
     _error = (int8_t)((line.readLine(sensorValues, (_status == LD_STATUS_WHITE_LINE) ? 1 : 0) - 100));
 
-    vTaskDelay(portTICK_PERIOD_MS * LD_TASK_FREQ);
+    MSG_INFO(_error);
+    */
+
+    //line.readRaw(sensorValues);
+
+    lineStatus_t tempStatus = LD_STATUS_BLACK_LINE;
+
+      sensorValues[0] = digitalRead(A4);
+      sensorValues[1] = digitalRead(A3);
+      sensorValues[2] = digitalRead(A1);
+      sensorValues[3] = digitalRead(A2);
+
+      if ( (sensorValues[0] == LOW || sensorValues[1] == LOW) &&  sensorValues[3] == LOW) {
+        _error = 100;
+      } else if ( sensorValues[0] == LOW && (sensorValues[2] == LOW ||  sensorValues[3] == LOW)) {
+        _error = -100;
+      } else if ( sensorValues[0] == LOW) {
+        _error = 75;
+      } else if ( sensorValues[3] == LOW ) {
+        _error = -75;
+      } else if ( sensorValues[1] == LOW && sensorValues[2] == HIGH) {
+        _error = 50;
+      } else if (sensorValues[1] == HIGH && sensorValues[2] == LOW) {
+        _error = -50;
+      } else if (sensorValues[1] == LOW && sensorValues[2] == LOW) {
+        _error = 0;
+      }
+      Serial.println(_error);
+
+    vTaskDelay(LD_TASK_TIME / portTICK_PERIOD_MS);
   }
 }
 
@@ -201,15 +241,24 @@ void lineDetectRunCalibrate(uint8_t targetColor, uint8_t save) {
   else if (targetColor == 1)
     line.calibrateBlack();
 
-  if (save == 1) line.calibrateSave();
+  Serial.println(line._calibratedBlack[0]);
+  Serial.println(line._calibratedWhite[0]);
+
+  if (save == 1)
+    line.calibrateSave();
 }
 
 void lineDetectInit() {
   line.init();
   line.calibrateLoad();
+  for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++){
+    Serial.println("Calib");
+    Serial.println(line._calibratedBlack[i]);
+    Serial.println(line._calibratedWhite[i]);
+  }
 }
 
 void getLineData(int8_t* error, lineStatus_t* status) {
   status = &_status;
-  error = &_error;
+  *error = _error;
 }

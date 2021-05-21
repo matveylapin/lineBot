@@ -8,12 +8,14 @@
 #include "Control.h"
 #include <Arduino_FreeRTOS.h>
 #include "LineRecognizer.h"
-#include "FastGPIO.h"
+#include "ObstacleDetector.h"
 
 void setup() {
   Serial.begin(9600);
   lineDetectInit();
+  obstacleDetectorInit();
   xTaskCreate(taskControl, "Control", 256, NULL, 1, NULL);
+  //xTaskCreate(taskObstacleDetector, "ObstacleDetector", 256, NULL, 2, NULL);
 }
 
 void loop() { }

@@ -1,8 +1,11 @@
 #include "ObstacleDetector.h"
 
-#include "config.h"
 #include <Arduino.h>
 #include <Servo.h>
+#include "config.h"
+#include <Arduino_FreeRTOS.h>
+
+#define __TASK__ " ObstacleDetector "
 
 void Ultrasonic::init(uint8_t trigPin, uint8_t echoPin)
 {
@@ -14,9 +17,12 @@ void Ultrasonic::init(uint8_t trigPin, uint8_t echoPin)
 
 uint16_t Ultrasonic::getDistance()
 {
-  long duration;
+  uint32_t duration;
+  
 
   //Send signal
+  digitalWrite(_trigPin, LOW);
+  delayMicroseconds(200);
   digitalWrite(_trigPin, HIGH);
   delayMicroseconds(10);
   digitalWrite(_trigPin, LOW);
@@ -25,10 +31,12 @@ uint16_t Ultrasonic::getDistance()
   duration = pulseIn(_echoPin, HIGH);
 
   //Calculating distance
-  distance = (duration / 2) / 29.1;
+  distance = (uint16_t)((duration / 2) / 29.1);
 
   return distance;
 }
+
+obstacleDetectorStatus_t status = OD_STATUS_SEARCH;
 
 Servo servo;
 Ultrasonic radar;
@@ -36,12 +44,27 @@ Ultrasonic radar;
 void taskObstacleDetector(void* pvParameters) {
   (void)pvParameters;
 
+  MSG_INFO("Start");
+
+  //uint8_t tmpAngle = 90;
+  status = OD_STATUS_SEARCH;
+
   for (;;) {
     /*
     не успел доделать((( Тут будет вращение сервы и считываение данных с дальномера. Дальше будет искаться самое мальенькое растояние(будет значение активации чтоб не сбить банку)
     и после того как оно будет найдено(серва будет стараться "целиться" на него) в MotionEstimator поменяться источник ошибки для пид регулятора, будем стремиться к тому
     чтоб препядствие всегда находилось справа от робота и угол сервы был максимальным
     */
+    uint16_t distance = radar.getDistance();
+
+    MSG_INFO(distance);
+
+    //if ((distance < OD_RADAR_TOGGLE_VALUE) || (status == OD_STATUS_SEARCH)) {
+    //  status = OD_STATUS_CAUGHT;
+    //}// else if (status == OD_STATUS_CAUGHT) {
+    //}
+
+    vTaskDelay(OD_TASK_TIME / portTICK_PERIOD_MS);
   }
 }
 
