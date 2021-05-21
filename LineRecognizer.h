@@ -8,7 +8,9 @@ typedef enum {
   LD_STATUS_BLACK_LINE = 0,
   LD_STATUS_WHITE_LINE = 1,
   LD_STATUS_BLACK = 2,
-  LD_STATUS_WHITE = 3
+  LD_STATUS_WHITE = 3, 
+  LD_STATUS_TURN_LEFT = 4,
+  LD_STATUS_TURN_RIGHT = 5
 } lineStatus_t;
 
 class LineRecognizer {

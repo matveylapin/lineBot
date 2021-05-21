@@ -31,9 +31,9 @@
 // <PID>
 #define PID_ERROR_ARRAY_SIZE 10
 #define PID_EEPROM_ADDR 20
-#define PID_DEFAULT_P 0.70
+#define PID_DEFAULT_P 2.0
 #define PID_DEFAULT_I 0.0
-#define PID_DEFAULT_D 0.10
+#define PID_DEFAULT_D 0.0
 // </PID>
 
 // <MOTION ESTIMATOR>

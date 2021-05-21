@@ -19,32 +19,48 @@ void taskMotionEstimator(void *pvParameters) {
   (void)pvParameters;
 
   MSG_INFO("Start");
+  int8_t turns[] = {1, -1, 1};
+  int8_t turnIterator = 0;
+
 
   lineStatus_t status;
   int8_t error;
 
-  getLineData(&error, &status);
-
   for (;;) {
     getLineData(&error, &status);
+    MSG_INFO(status);
     if (status == LD_STATUS_BLACK_LINE || status == LD_STATUS_WHITE_LINE) {   // if the line is white or black, start a regular ride along the line
       float correction = pid.calculate(error);
 
       motorLeft.setSpeed(ME_AVG_SPEED * (1 + correction));
       motorRight.setSpeed(ME_AVG_SPEED * (1 - correction));
 
-      MSG_INFO(error);
-      //MSG_INFO(ME_AVG_SPEED * (1 + correction));
-      //MSG_INFO(ME_AVG_SPEED * (1 - correction));
+    } else if ((status == LD_STATUS_TURN_LEFT) && (turns[turnIterator] = -1) && (turnIterator != -1)) {   //if we meet a black stop line, we just go straight until we meet again
 
-    } else if (status == LD_STATUS_BLACK) {   //if we meet a black stop line, we just go straight until we meet again
-
-      motorLeft.setSpeed(ME_AVG_SPEED);
+      motorLeft.setSpeed(-ME_AVG_SPEED);
       motorRight.setSpeed(ME_AVG_SPEED);
 
-      vTaskDelay(ME_STOP_LINE_TRAVEL_TIME / portTICK_PERIOD_MS);
-      while (status != LD_STATUS_BLACK) vTaskDelay(200 / portTICK_PERIOD_MS);;
-      vTaskDelay(ME_STOP_LINE_TRAVEL_TIME / portTICK_PERIOD_MS);
+      if (turnIterator - 1 != sizeof(turns)) turnIterator++;
+      else turnIterator = -1;
+
+      vTaskDelay(800 / portTICK_PERIOD_MS);
+
+    } else if ((status == LD_STATUS_TURN_RIGHT) && (turns[turnIterator] = 1) && (turnIterator != -1)) {   //if we meet a black stop line, we just go straight until we meet again
+
+      motorLeft.setSpeed(ME_AVG_SPEED);
+      motorRight.setSpeed(-ME_AVG_SPEED);
+
+      if (turnIterator - 1 != sizeof(turns)) turnIterator++;
+      else turnIterator = -1;
+
+      vTaskDelay(800 / portTICK_PERIOD_MS);
+    } else if ((status == LD_STATUS_TURN_RIGHT || status == LD_STATUS_TURN_LEFT) && (turns[turnIterator] = 0) && (turnIterator != -1)) {
+      if (turnIterator - 1 != sizeof(turns)) turnIterator++;
+      else turnIterator = -1;
+    } else if (status == LD_STATUS_BLACK) {
+      motorLeft.setSpeed(ME_AVG_SPEED);
+      motorRight.setSpeed(ME_AVG_SPEED);
+      vTaskDelay(400 / portTICK_PERIOD_MS);
     }
     vTaskDelay(ME_TASK_TIME / portTICK_PERIOD_MS);
   }

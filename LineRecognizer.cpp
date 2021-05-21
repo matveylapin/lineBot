@@ -19,9 +19,10 @@ init - initialization
 */
 void LineRecognizer::init() {
   for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) pinMode(_sensorPins[i], INPUT);
-  //ADCSRA |= (1 << ADPS1); 
-  //ADCSRA &= ~ ((1 << ADPS2) | (1 << ADPS0));
-  //ADCSRA &= ~(1 << ADATE);
+  pinMode(A5, INPUT);
+  ADCSRA |= (1 << ADPS1); 
+  ADCSRA &= ~ ((1 << ADPS2) | (1 << ADPS0));
+  ADCSRA &= ~(1 << ADATE);
   for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) {
     _calibratedBlack[i] = 1023;
     _calibratedWhite[i] = 0;
@@ -176,60 +177,53 @@ void taskLineDetect(void* pvParameters) {
   MSG_INFO("Start");
 
   for (;;) {
-    /*
-    line.readCalibrated(sensorValues);
-    lineStatus_t tempStatus = LD_STATUS_BLACK_LINE;
-
-    // count the number of strictly white, strictly black and average values ​​from the sensors
-    uint16_t lowValueCount = 0, midValueCount = 0, highValueCount = 0;
-    for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) {
-      if (sensorValues[i] >= LD_ON_BORDER)
-        highValueCount++;
-      else if (sensorValues[i] <= LD_OFF_BORDER)
-        lowValueCount++;
-      else
-        midValueCount++;
-    }
-    // here we will recognize the status of the line
-    if (lowValueCount == LR_SENSOR_COUNT) tempStatus = LD_STATUS_WHITE;
-    else if (highValueCount == LR_SENSOR_COUNT)
-      tempStatus = LD_STATUS_BLACK;
-    else if ((highValueCount >= midValueCount) || (highValueCount > lowValueCount))
-      tempStatus = LD_STATUS_WHITE_LINE;
-    else if ((lowValueCount >= midValueCount) || (lowValueCount >= highValueCount))
-      tempStatus = LD_STATUS_BLACK_LINE;
-
-    _status = tempStatus;
-    _error = (int8_t)((line.readLine(sensorValues, (_status == LD_STATUS_WHITE_LINE) ? 1 : 0) - 100));
-
-    MSG_INFO(_error);
-    */
-
-    //line.readRaw(sensorValues);
 
     lineStatus_t tempStatus = LD_STATUS_BLACK_LINE;
 
+    uint8_t gs = fastAnalogRead(A5);
+
+    if (gs > 0) { 
       sensorValues[0] = digitalRead(A4);
       sensorValues[1] = digitalRead(A3);
       sensorValues[2] = digitalRead(A1);
       sensorValues[3] = digitalRead(A2);
+    } else {
+      sensorValues[0] = 1 - digitalRead(A4);
+      sensorValues[1] = 1 - digitalRead(A3);
+      sensorValues[2] = 1 - digitalRead(A1);
+      sensorValues[3] = 1 - digitalRead(A2);
+    }
 
-      if ( (sensorValues[0] == LOW || sensorValues[1] == LOW) &&  sensorValues[3] == LOW) {
-        _error = -100;
-      } else if ( sensorValues[0] == LOW && (sensorValues[2] == LOW ||  sensorValues[3] == LOW)) {
-        _error = 100;
-      } else if ( sensorValues[0] == LOW) {
-        _error = 75;
-      } else if ( sensorValues[3] == LOW ) {
-        _error = -75;
-      } else if ( sensorValues[1] == LOW && sensorValues[2] == HIGH) {
-        _error = 50;
-      } else if (sensorValues[1] == HIGH && sensorValues[2] == LOW) {
-        _error = -50;
-      } else if (sensorValues[1] == LOW && sensorValues[2] == LOW) {
-        _error = 0;
-      }
-      Serial.println(_error);
+    if ( sensorValues[0] == HIGH && sensorValues[1] && LOW || sensorValues[2] && LOW || sensorValues[3] && LOW) {
+      _error = 0;
+      tempStatus = LD_STATUS_TURN_LEFT;
+    } else if ( sensorValues[0] == LOW && sensorValues[1] == LOW && sensorValues[2] == LOW && sensorValues[3] == HIGH) {
+      _error = 0;
+      tempStatus = LD_STATUS_TURN_RIGHT;
+    } else if (sensorValues[0] == HIGH && sensorValues[1] == HIGH && sensorValues[2] == HIGH && sensorValues[3] == HIGH) {
+      _error = 0;
+      tempStatus = LD_STATUS_WHITE;
+    } else if (sensorValues[0] == LOW && sensorValues[1] == LOW && sensorValues[2] == LOW && sensorValues[3] == LOW) {
+      _error = 0;
+      tempStatus = LD_STATUS_BLACK;
+    } else if ( sensorValues[0] == LOW) {
+      _error = 75;
+      tempStatus = LD_STATUS_BLACK_LINE;
+    } else if ( sensorValues[3] == LOW ) {
+      _error = -75;
+      tempStatus = LD_STATUS_BLACK_LINE;
+    } else if ( sensorValues[1] == LOW && sensorValues[2] == HIGH) {
+      _error = 50;
+      tempStatus = LD_STATUS_BLACK_LINE;
+    } else if (sensorValues[1] == HIGH && sensorValues[2] == LOW) {
+      _error = -50;
+      tempStatus = LD_STATUS_BLACK_LINE;
+    } else if (sensorValues[1] == LOW && sensorValues[2] == LOW) {
+      _error = 0;
+      tempStatus = LD_STATUS_BLACK_LINE;
+    }
+      
+    _status = tempStatus;
 
     vTaskDelay(LD_TASK_TIME / portTICK_PERIOD_MS);
   }
@@ -250,15 +244,9 @@ void lineDetectRunCalibrate(uint8_t targetColor, uint8_t save) {
 
 void lineDetectInit() {
   line.init();
-  line.calibrateLoad();
-  for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++){
-    Serial.println("Calib");
-    Serial.println(line._calibratedBlack[i]);
-    Serial.println(line._calibratedWhite[i]);
-  }
 }
 
 void getLineData(int8_t* error, lineStatus_t* status) {
-  status = &_status;
+  *status = _status;
   *error = _error;
 }
