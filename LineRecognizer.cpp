@@ -19,7 +19,6 @@ init - initialization
 */
 void LineRecognizer::init() {
   for (uint8_t i = 0; i < LR_SENSOR_COUNT; i++) pinMode(_sensorPins[i], INPUT);
-  pinMode(A5, INPUT);
   ADCSRA |= (1 << ADPS1); 
   ADCSRA &= ~ ((1 << ADPS2) | (1 << ADPS0));
   ADCSRA &= ~(1 << ADATE);
@@ -180,21 +179,12 @@ void taskLineDetect(void* pvParameters) {
 
     lineStatus_t tempStatus = LD_STATUS_BLACK_LINE;
 
-    uint8_t gs = fastAnalogRead(A5);
+    sensorValues[0] = digitalRead(A4);
+    sensorValues[1] = digitalRead(A3);
+    sensorValues[2] = digitalRead(A1);
+    sensorValues[3] = digitalRead(A2);
 
-    if (gs > 0) { 
-      sensorValues[0] = digitalRead(A4);
-      sensorValues[1] = digitalRead(A3);
-      sensorValues[2] = digitalRead(A1);
-      sensorValues[3] = digitalRead(A2);
-    } else {
-      sensorValues[0] = 1 - digitalRead(A4);
-      sensorValues[1] = 1 - digitalRead(A3);
-      sensorValues[2] = 1 - digitalRead(A1);
-      sensorValues[3] = 1 - digitalRead(A2);
-    }
-
-    if ( sensorValues[0] == HIGH && sensorValues[1] && LOW || sensorValues[2] && LOW || sensorValues[3] && LOW) {
+    if ( sensorValues[0] == HIGH && sensorValues[1] == LOW && sensorValues[2] == LOW && sensorValues[3] == LOW) {
       _error = 0;
       tempStatus = LD_STATUS_TURN_LEFT;
     } else if ( sensorValues[0] == LOW && sensorValues[1] == LOW && sensorValues[2] == LOW && sensorValues[3] == HIGH) {

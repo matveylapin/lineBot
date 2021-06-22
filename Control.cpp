@@ -69,7 +69,7 @@ void taskControl(void *pvParameters) {
       fastDigitalWrite(CONTROL_LED_R_PIN, 0);
 
       xTaskCreate(taskLineDetect, "LineDetect", 256, NULL, 2, &xLineDetectHandle);
-      xTaskCreate(taskMotionEstimator, "MotionEstimator", 128, NULL, 2, &xMotionEstimatorHandle);
+      xTaskCreate(taskMotionEstimator, "MotionEstimator", 200, NULL, 2, &xMotionEstimatorHandle);
     } else if (isSingle && mode == CONTROL_MODE_RUN) {  // pressing again stops driving
 
       MSG_INFO("Run mode disable");

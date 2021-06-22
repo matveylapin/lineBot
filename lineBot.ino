@@ -1,5 +1,5 @@
 /**
- * Autor: Lapin Matvey (inst: @l_motya)
+ * Author: Lapin Matvey (inst: @l_motya)
  * Using:
  *    FreeRTOS for arduino https://github.com/feilipu/Arduino_FreeRTOS_Library
 */
@@ -13,7 +13,8 @@
 void setup() {
   Serial.begin(9600);
   lineDetectInit();
-  obstacleDetectorInit();
+  //obstacleDetectorInit();
+  pinMode(A5, INPUT);
   xTaskCreate(taskControl, "Control", 256, NULL, 1, NULL);
 }
 

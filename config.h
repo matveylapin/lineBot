@@ -1,5 +1,5 @@
 
-#define DEBUG_INFO
+//#define DEBUG_INFO
 //#define DEBUG_ERR
 //#define DEBUG_WRN
 
@@ -31,7 +31,7 @@
 // <PID>
 #define PID_ERROR_ARRAY_SIZE 10
 #define PID_EEPROM_ADDR 20
-#define PID_DEFAULT_P 2.0
+#define PID_DEFAULT_P 7.0
 #define PID_DEFAULT_I 0.0
 #define PID_DEFAULT_D 0.0
 // </PID>
@@ -55,7 +55,7 @@
 #define OD_RADAR_TRIG_PIN 13
 #define OD_RADAR_ECHO_PIN 12
 #define OD_RADAR_ARRAY_SIZE 18
-#define OD_RADAR_TOGGLE_VALUE 15  // sm
+#define OD_RADAR_TOGGLE_VALUE 25  // sm
 #define OD_TASK_TIME 500
 // </OBSTRACLE DETECTOR>
 

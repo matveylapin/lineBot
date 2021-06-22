@@ -38,8 +38,8 @@ uint16_t Ultrasonic::getDistance()
 
 obstacleDetectorStatus_t status = OD_STATUS_SEARCH;
 
-Servo servo;
-Ultrasonic radar;
+//Servo servo;
+//Ultrasonic radar;
 
 void taskObstacleDetector(void* pvParameters) {
   (void)pvParameters;
@@ -55,9 +55,9 @@ void taskObstacleDetector(void* pvParameters) {
     и после того как оно будет найдено(серва будет стараться "целиться" на него) в MotionEstimator поменяться источник ошибки для пид регулятора, будем стремиться к тому
     чтоб препядствие всегда находилось справа от робота и угол сервы был максимальным
     */
-    uint16_t distance = radar.getDistance();
+    //uint16_t distance = radar.getDistance();
 
-    MSG_INFO(distance);
+    //MSG_INFO(distance);
 
     //if ((distance < OD_RADAR_TOGGLE_VALUE) || (status == OD_STATUS_SEARCH)) {
     //  status = OD_STATUS_CAUGHT;
@@ -69,7 +69,5 @@ void taskObstacleDetector(void* pvParameters) {
 }
 
 void obstacleDetectorInit() {
-  servo.attach(OD_SERVO_PIN);
-  servo.write(90);
-  radar.init(OD_RADAR_TRIG_PIN, OD_RADAR_ECHO_PIN);
+  
 }
